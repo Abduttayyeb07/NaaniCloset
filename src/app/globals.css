@@ -2,15 +2,20 @@
 @import "tailwindcss";
 
 @theme inline {
-  --color-blush: #F7C8D0;
-  --color-blush-light: #FDE8EC;
-  --color-cream: #FCF9F6;
+  /* ── Logo-derived Pastel Rainbow Palette ── */
+  --color-blush: #F4B8C1;         /* Soft pink from logo text */
+  --color-blush-light: #FCE4E8;
+  --color-peach: #F9D4B0;         /* Warm peach from rainbow */
+  --color-lavender: #D4C4E8;      /* Soft lavender from rainbow */
+  --color-mint: #B8E0D2;          /* Pastel mint from rainbow */
+  --color-baby-yellow: #F9E8A0;   /* Baby yellow from rainbow */
+  --color-cream: #FFF9F5;         /* Warmer cream to match logo bg */
   --color-dusty-rose: #D88C9A;
-  --color-charcoal: #1A1A1A;
-  --color-text-light: #707070;
+  --color-charcoal: #2C2C2C;      /* Slightly softer charcoal */
+  --color-text-light: #8A8A8A;
   --color-white: #ffffff;
-  --color-background: #FCF9F6;
-  --color-foreground: #1A1A1A;
+  --color-background: #FFF9F5;
+  --color-foreground: #2C2C2C;
   --font-playfair: "Playfair Display", serif;
   --font-inter: "Inter", sans-serif;
 }
@@ -25,7 +30,7 @@ html {
 body {
   font-family: var(--font-inter);
   color: var(--color-charcoal);
-  background: var(--color-white);
+  background: var(--color-cream);
   overflow-x: hidden;
 }
 
@@ -41,25 +46,28 @@ body {
 
 /* ── Soft shadows ─────────────────────────────── */
 .shadow-soft {
-  box-shadow: 0 4px 20px rgba(216, 140, 154, 0.12);
+  box-shadow: 0 4px 20px rgba(244, 184, 193, 0.15);
 }
 .shadow-soft-lg {
-  box-shadow: 0 8px 40px rgba(216, 140, 154, 0.18);
+  box-shadow: 0 8px 40px rgba(244, 184, 193, 0.2);
 }
 
 /* ── Glassmorphism ────────────────────────────── */
 .glass {
-  background: rgba(255, 255, 255, 0.72);
+  background: rgba(255, 249, 245, 0.72);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
 }
 
-/* ── Brand gradient ───────────────────────────── */
+/* ── Brand gradient (logo rainbow) ───────────── */
 .gradient-blush {
   background: linear-gradient(
     135deg,
     var(--color-blush) 0%,
-    var(--color-cream) 100%
+    var(--color-peach) 25%,
+    var(--color-baby-yellow) 50%,
+    var(--color-mint) 75%,
+    var(--color-lavender) 100%
   );
 }
 
