@@ -2,19 +2,21 @@
 @import "tailwindcss";
 
 @theme inline {
-  /* ── Logo-derived Pastel Rainbow Palette ── */
-  --color-blush: #F4B8C1;         /* Soft pink from logo text */
-  --color-blush-light: #FCE4E8;
-  --color-peach: #F9D4B0;         /* Warm peach from rainbow */
-  --color-lavender: #D4C4E8;      /* Soft lavender from rainbow */
-  --color-mint: #B8E0D2;          /* Pastel mint from rainbow */
-  --color-baby-yellow: #F9E8A0;   /* Baby yellow from rainbow */
-  --color-cream: #FFF9F5;         /* Warmer cream to match logo bg */
+  /* ── Exact Logo Palette ── */
+  --color-brand-blue: #9EC9D0;
+  --color-brand-mint: #B0D4CF;
+  --color-brand-lavender: #C3B9E0;
+  --color-brand-peach: #F0C3A4;
+  --color-brand-pink: #E9A7B3;
+  
+  --color-blush: var(--color-brand-pink);
+  --color-blush-light: #FDF2F4;
+  --color-cream: #FFFFFF;         /* White focus as requested */
   --color-dusty-rose: #D88C9A;
-  --color-charcoal: #2C2C2C;      /* Slightly softer charcoal */
+  --color-charcoal: #2C2C2C;
   --color-text-light: #8A8A8A;
   --color-white: #ffffff;
-  --color-background: #FFF9F5;
+  --color-background: #ffffff;
   --color-foreground: #2C2C2C;
   --font-playfair: "Playfair Display", serif;
   --font-inter: "Inter", sans-serif;
@@ -30,13 +32,13 @@ html {
 body {
   font-family: var(--font-inter);
   color: var(--color-charcoal);
-  background: var(--color-cream);
+  background: var(--color-white);
   overflow-x: hidden;
 }
 
 ::selection {
-  background: var(--color-blush);
-  color: var(--color-charcoal);
+  background: var(--color-brand-pink);
+  color: var(--color-white);
 }
 
 /* ── Typography helpers ───────────────────────── */
@@ -46,28 +48,28 @@ body {
 
 /* ── Soft shadows ─────────────────────────────── */
 .shadow-soft {
-  box-shadow: 0 4px 20px rgba(244, 184, 193, 0.15);
+  box-shadow: 0 4px 20px rgba(158, 201, 208, 0.15);
 }
 .shadow-soft-lg {
-  box-shadow: 0 8px 40px rgba(244, 184, 193, 0.2);
+  box-shadow: 0 8px 40px rgba(233, 167, 179, 0.2);
 }
 
 /* ── Glassmorphism ────────────────────────────── */
 .glass {
-  background: rgba(255, 249, 245, 0.72);
+  background: rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
 }
 
-/* ── Brand gradient (logo rainbow) ───────────── */
+/* ── Brand gradient (exact logo rainbow) ───────────── */
 .gradient-blush {
   background: linear-gradient(
     135deg,
-    var(--color-blush) 0%,
-    var(--color-peach) 25%,
-    var(--color-baby-yellow) 50%,
-    var(--color-mint) 75%,
-    var(--color-lavender) 100%
+    var(--color-brand-pink) 0%,
+    var(--color-brand-peach) 25%,
+    var(--color-brand-lavender) 50%,
+    var(--color-brand-mint) 75%,
+    var(--color-brand-blue) 100%
   );
 }
 

@@ -39,7 +39,7 @@ export default function Header() {
               <a
                 key={link.label}
                 href={link.href}
-                className="font-inter text-[12px] uppercase tracking-[0.2em] text-charcoal/60 hover:text-charcoal transition-colors duration-300"
+                className="font-inter text-[12px] uppercase tracking-[0.2em] text-charcoal/90 hover:text-charcoal transition-colors duration-300"
               >
                 {link.label}
               </a>
@@ -48,12 +48,13 @@ export default function Header() {
 
           {/* Center: Logo */}
           <div className="flex justify-center">
-            <a href="#" className="flex items-center group">
+            <a href="#" className="relative block p-1.5 bg-white rounded-full shadow-soft-lg group border border-charcoal/5">
               <img
                 src="/logo.jpg"
                 alt="Naani's Closet"
-                className={`transition-all duration-700 ease-out ${scrolled ? "h-9" : "h-12"}`}
+                className="h-9 w-auto rounded-full object-contain transition-transform duration-500 group-hover:scale-110"
               />
+              <div className="absolute inset-0 -z-10 bg-dusty-rose/10 blur-xl rounded-full scale-110 opacity-0 group-hover:opacity-100 transition-opacity" />
             </a>
           </div>
 
@@ -64,7 +65,7 @@ export default function Header() {
                 <a
                   key={link.label}
                   href={link.href}
-                  className="font-inter text-[12px] uppercase tracking-[0.2em] text-charcoal/60 hover:text-charcoal transition-colors duration-300"
+                  className="font-inter text-[12px] uppercase tracking-[0.2em] text-charcoal/90 hover:text-charcoal transition-colors duration-300"
                 >
                   {link.label}
                 </a>

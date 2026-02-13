@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Button from "../ui/Button";
@@ -14,9 +14,32 @@ gsap.registerPlugin(ScrollTrigger);
 
 export default function Hero() {
   const containerRef = useRef<HTMLDivElement>(null);
+  const [isMounted, setIsMounted] = useState(false);
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+
+  useEffect(() => {
+    setIsMounted(true);
+    const handleMove = (e: MouseEvent) => {
+      const x = (e.clientX / window.innerWidth - 0.5) * 15;
+      const y = (e.clientY / window.innerHeight - 0.5) * 15;
+      setMousePos({ x, y });
+    };
+    window.addEventListener("mousemove", handleMove);
+    return () => window.removeEventListener("mousemove", handleMove);
+  }, []);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
+      // 1. CONSTANT NEEDLE MOTION (Infinite Loop)
+      gsap.to(".sewing-needle", {
+        y: 12,
+        duration: 0.15,
+        repeat: -1,
+        yoyo: true,
+        ease: "power1.inOut"
+      });
+
+      // 2. SCROLL TIMELINE
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: containerRef.current,
@@ -26,12 +49,23 @@ export default function Hero() {
         },
       });
 
-      /* ─── ACT 0 → 1: Title fades, Sewing machine rises ─── */
-      tl.to(".hero-title", { opacity: 0, y: -80, scale: 0.9, duration: 1, ease: "power2.inOut" })
-        .fromTo(".scene-atelier", { opacity: 0, y: 100, rotateX: 15 }, { opacity: 1, y: 0, rotateX: 0, duration: 1.5, ease: "power3.out" }, "-=0.4")
-        .fromTo(".atelier-text", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.6 }, "-=0.8")
-        // Needle pumps
-        .fromTo(".sewing-needle", { y: 0 }, { y: 14, duration: 0.06, repeat: 20, yoyo: true, ease: "power1.inOut" }, "-=1")
+      /* ─── ENTRANCE (ACT 0) ─── */
+      const entranceTl = gsap.timeline();
+      entranceTl.fromTo(".rainbow-band", 
+        { strokeDashoffset: 800 },
+        { strokeDashoffset: 0, duration: 1.5, stagger: 0.1, ease: "power2.inOut" }
+      )
+      .fromTo(".hero-main-title", 
+        { opacity: 0, y: 30 },
+        { opacity: 1, y: 0, duration: 1, ease: "power3.out" },
+        "-=0.5"
+      );
+
+      /* ─── SCROLL STORY ─── */
+      tl.to(".hero-intro-group", { opacity: 0, y: -60, scale: 0.95, duration: 1 })
+        .to(".scene-rainbow", { opacity: 0, y: -40, duration: 1 }, "<")
+        .fromTo(".scene-atelier", { opacity: 0, y: 100 }, { opacity: 1, y: 0, duration: 1.5 }, "-=0.5")
+        .fromTo(".atelier-text", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.6 }, "-=1")
         // Thread draws
         .fromTo(".thread-line", { strokeDashoffset: 700 }, { strokeDashoffset: 0, duration: 2, ease: "power1.inOut" }, "-=1.5")
         // Fabric emerges
@@ -39,37 +73,25 @@ export default function Hero() {
         .fromTo(".fabric-piece-2", { opacity: 0, scaleX: 0 }, { opacity: 1, scaleX: 1, duration: 0.8, transformOrigin: "left center" }, "-=0.5")
         .fromTo(".fabric-piece-3", { opacity: 0, scaleX: 0 }, { opacity: 1, scaleX: 1, duration: 0.8, transformOrigin: "left center" }, "-=0.3")
 
-        /* ─── ACT 1 → 2: Atelier exits, Dress assembles ─── */
         .to(".atelier-text", { opacity: 0, y: -20, duration: 0.3 }, "+=0.4")
         .to(".scene-atelier", { opacity: 0, y: -60, scale: 0.85, duration: 0.8 })
         .fromTo(".scene-dress", { opacity: 0, scale: 0.6, rotateY: -30 }, { opacity: 1, scale: 1, rotateY: 0, duration: 1.2, ease: "back.out(1.4)" }, "-=0.3")
         .fromTo(".dress-text", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.5 }, "-=0.6")
-        // Bodice drops in
         .fromTo(".dress-bodice", { opacity: 0, y: -50 }, { opacity: 1, y: 0, duration: 0.6, ease: "bounce.out" }, "-=0.8")
-        // Skirt unfurls
         .fromTo(".dress-skirt", { opacity: 0, scaleY: 0 }, { opacity: 1, scaleY: 1, duration: 0.8, transformOrigin: "top center", ease: "elastic.out(1, 0.5)" }, "-=0.3")
-        // Sleeves attach
         .fromTo(".dress-sleeve-l", { opacity: 0, x: 30, rotate: 15 }, { opacity: 1, x: 0, rotate: 0, duration: 0.5 }, "-=0.5")
         .fromTo(".dress-sleeve-r", { opacity: 0, x: -30, rotate: -15 }, { opacity: 1, x: 0, rotate: 0, duration: 0.5 }, "-=0.5")
-        // Stitch lines
         .fromTo(".stitch-mark", { strokeDashoffset: 200 }, { strokeDashoffset: 0, duration: 0.8, stagger: 0.08 }, "-=0.4")
-        // Sparkles
         .fromTo(".sparkle", { opacity: 0, scale: 0, rotation: -90 }, { opacity: 1, scale: 1, rotation: 0, duration: 0.3, stagger: 0.06, ease: "back.out(4)" }, "-=0.2")
-        // Tiny bow
         .fromTo(".dress-bow", { opacity: 0, scale: 0 }, { opacity: 1, scale: 1, duration: 0.4, ease: "elastic.out(1.2, 0.4)" }, "-=0.2")
 
-        /* ─── ACT 2 → 3: Dress floats into Closet ─── */
         .to(".dress-text", { opacity: 0, y: -20, duration: 0.3 }, "+=0.5")
         .to(".scene-dress", { scale: 0.35, y: -180, x: 0, opacity: 0, duration: 1, ease: "power3.in" })
         .fromTo(".scene-closet", { opacity: 0, y: 120, rotateX: 10 }, { opacity: 1, y: 0, rotateX: 0, duration: 1.2, ease: "power3.out" }, "-=0.4")
-        // Closet doors swing open with 3D perspective
         .fromTo(".closet-door-l", { rotateY: 0 }, { rotateY: -75, duration: 1, transformOrigin: "left center", ease: "power2.inOut" }, "-=0.6")
         .fromTo(".closet-door-r", { rotateY: 0 }, { rotateY: 75, duration: 1, transformOrigin: "right center", ease: "power2.inOut" }, "-=1")
-        // Garments reveal with stagger
         .fromTo(".closet-garment", { opacity: 0, y: 30, scale: 0.8 }, { opacity: 1, y: 0, scale: 1, duration: 0.6, stagger: 0.12, ease: "back.out(1.5)" }, "-=0.3")
-        // Shelf items
         .fromTo(".shelf-item", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.4, stagger: 0.08 }, "-=0.3")
-        // Final text
         .fromTo(".closet-text", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.8, ease: "power2.out" }, "-=0.2")
         .fromTo(".cta-final", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.5 }, "-=0.3");
 
@@ -79,34 +101,42 @@ export default function Hero() {
   }, []);
 
   return (
-    <section ref={containerRef} className="relative" style={{ height: "550vh", background: "linear-gradient(180deg, #FFF9F5 0%, #FFF5F0 30%, #FDF2F5 60%, #FFF9F5 100%)" }}>
-      <div className="sticky top-0 h-screen w-full overflow-hidden flex items-center justify-center" style={{ perspective: "1200px" }}>
+    <section ref={containerRef} className="relative" style={{ height: "600vh", background: "linear-gradient(180deg, #FFFFFF 0%, #F9F9F9 50%, #FFFFFF 100%)" }}>
+      <div className="sticky top-0 h-screen w-full overflow-hidden flex items-center justify-center" style={{ perspective: "1500px" }}>
         
         {/* ═══ ATMOSPHERIC BACKGROUND ═══ */}
         <div className="absolute inset-0 z-0 pointer-events-none">
-          {/* Logo-rainbow ambient glow */}
-          <div className="absolute top-[10%] right-[15%] w-[500px] h-[500px] rounded-full blur-[200px] opacity-20" style={{ background: "radial-gradient(circle, #F4B8C1, #F9D4B0)" }} />
-          <div className="absolute bottom-[20%] left-[10%] w-[400px] h-[400px] rounded-full blur-[180px] opacity-15" style={{ background: "radial-gradient(circle, #D4C4E8, #B8E0D2)" }} />
-          <div className="absolute top-[50%] left-[50%] -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] rounded-full blur-[160px] opacity-10" style={{ background: "radial-gradient(circle, #F9E8A0, #F9D4B0)" }} />
+          <div className="absolute top-[10%] right-[15%] w-[500px] h-[500px] rounded-full blur-[200px] opacity-10" style={{ background: "radial-gradient(circle, #E9A7B3, #F0C3A4)" }} />
+          <div className="absolute bottom-[20%] left-[10%] w-[400px] h-[400px] rounded-full blur-[180px] opacity-10" style={{ background: "radial-gradient(circle, #C3B9E0, #B0D4CF)" }} />
         </div>
 
-        {/* ═══ ACT 0: BRAND TITLE ═══ */}
-        <div className="hero-title absolute inset-0 z-10 flex flex-col items-center justify-center text-center px-6">
-          <div className="mb-6">
-            <img src="/logo.jpg" alt="Naani's Closet" className="h-24 md:h-32 w-auto mx-auto drop-shadow-lg" />
-          </div>
-          <h1 className="font-playfair text-[clamp(3rem,10vw,7rem)] leading-[0.9] tracking-tighter" style={{ background: "linear-gradient(135deg, #2C2C2C 0%, #D88C9A 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-            Handcrafted <br />
-            <span className="italic">with Love</span>
-          </h1>
-          <p className="mt-6 font-inter text-[#8A8A8A] text-sm md:text-base max-w-md leading-relaxed">
-            Heirloom-quality toddler fashion, stitched one story at a time.
-          </p>
-          <div className="mt-14 flex flex-col items-center gap-3">
-            <span className="font-inter text-[9px] uppercase tracking-[0.5em] text-[#D88C9A]/60 animate-pulse">
-              Scroll to unravel the story
-            </span>
-            <div className="w-px h-14 bg-gradient-to-b from-[#D88C9A]/30 to-transparent animate-bounce" />
+        {/* ═══ RAINBOW ARC (PERSISTENT & DARKER) ═══ */}
+        <div className="scene-rainbow absolute inset-0 z-10 flex items-center justify-center pointer-events-none">
+          <svg viewBox="0 0 500 260" className="w-[450px] md:w-[700px] h-auto opacity-70">
+            <path className="rainbow-band" d="M50,240 Q50,50 250,50 Q450,50 450,240" stroke="#9A8CC7" strokeWidth="8" fill="none" strokeDasharray="800" strokeDashoffset="800" />
+            <path className="rainbow-band" d="M70,240 Q70,70 250,70 Q430,70 430,240" stroke="#7CB3AB" strokeWidth="8" fill="none" strokeDasharray="800" strokeDashoffset="800" />
+            <path className="rainbow-band" d="M90,240 Q90,90 250,90 Q410,90 410,240" stroke="#71A8B1" strokeWidth="8" fill="none" strokeDasharray="800" strokeDashoffset="800" />
+            <path className="rainbow-band" d="M110,240 Q110,110 250,110 Q390,110 390,240" stroke="#DB9A6E" strokeWidth="8" fill="none" strokeDasharray="800" strokeDashoffset="800" />
+            <path className="rainbow-band" d="M130,240 Q130,130 250,130 Q370,130 370,240" stroke="#B87A87" strokeWidth="8" fill="none" strokeDasharray="800" strokeDashoffset="800" />
+          </svg>
+        </div>
+
+        {/* ═══ ACT 0: BRAND ENTRANCE (LOGO REMOVED) ═══ */}
+        <div className="hero-intro-group absolute inset-0 z-20 flex flex-col items-center justify-center text-center px-6">
+          <div className="hero-main-title">
+            <h1 className="font-playfair text-[clamp(3.5rem,11vw,8rem)] leading-[0.85] tracking-tighter" style={{ background: "linear-gradient(135deg, #1A1A1A 0%, #D88C9A 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+              Handcrafted <br />
+              <span className="italic">with Love</span>
+            </h1>
+            <p className="mt-8 font-inter text-[#444444] text-sm md:text-base font-medium max-w-sm mx-auto leading-relaxed">
+              Traditional kids&apos; ethnic wear and handcrafted heirlooms, stitched one story at a time.
+            </p>
+            <div className="mt-14 flex flex-col items-center gap-4">
+              <span className="font-inter text-[9px] uppercase tracking-[0.6em] text-charcoal/30 font-bold">
+                SCROLL TO UNRAVEL THE STORY
+              </span>
+              <div className="w-px h-16 bg-gradient-to-b from-charcoal/20 to-transparent" />
+            </div>
           </div>
         </div>
 
@@ -116,32 +146,32 @@ export default function Hero() {
             <defs>
               {/* 3D gradient for machine body */}
               <linearGradient id="machineBody" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#F9D4B0" />
-                <stop offset="50%" stopColor="#F4B8C1" />
+                <stop offset="0%" stopColor="#F0C3A4" />
+                <stop offset="50%" stopColor="#E9A7B3" />
                 <stop offset="100%" stopColor="#D88C9A" />
               </linearGradient>
               <linearGradient id="machineArm" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%" stopColor="#F4B8C1" />
-                <stop offset="100%" stopColor="#E8A0AC" />
+                <stop offset="0%" stopColor="#E9A7B3" />
+                <stop offset="100%" stopColor="#D88C9A" />
               </linearGradient>
               <linearGradient id="tableGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#F9E8A0" />
-                <stop offset="100%" stopColor="#E8D48A" />
+                <stop offset="0%" stopColor="#F9F9F9" />
+                <stop offset="100%" stopColor="#EEEEEE" />
               </linearGradient>
               <linearGradient id="fabricGrad1" x1="0" y1="0" x2="1" y2="0">
-                <stop offset="0%" stopColor="#D4C4E8" />
-                <stop offset="100%" stopColor="#E8D5F0" />
+                <stop offset="0%" stopColor="#C3B9E0" />
+                <stop offset="100%" stopColor="#ECEAF4" />
               </linearGradient>
               <linearGradient id="fabricGrad2" x1="0" y1="0" x2="1" y2="0">
-                <stop offset="0%" stopColor="#B8E0D2" />
-                <stop offset="100%" stopColor="#D0F0E4" />
+                <stop offset="0%" stopColor="#B0D4CF" />
+                <stop offset="100%" stopColor="#E5F1F0" />
               </linearGradient>
               <linearGradient id="fabricGrad3" x1="0" y1="0" x2="1" y2="0">
-                <stop offset="0%" stopColor="#F4B8C1" />
-                <stop offset="100%" stopColor="#FCE4E8" />
+                <stop offset="0%" stopColor="#E9A7B3" />
+                <stop offset="100%" stopColor="#F8E7EA" />
               </linearGradient>
               <filter id="shadow3d">
-                <feDropShadow dx="4" dy="6" stdDeviation="6" floodColor="#D88C9A" floodOpacity="0.25" />
+                <feDropShadow dx="4" dy="6" stdDeviation="6" floodColor="#E9A7B3" floodOpacity="0.2" />
               </filter>
               <filter id="softGlow">
                 <feGaussianBlur stdDeviation="3" result="blur" />
@@ -224,15 +254,15 @@ export default function Hero() {
             <path d="M55 285 Q65 255 85 245" stroke="#F9D4B0" strokeWidth="2" fill="none" opacity="0.3" />
             <path d="M60 290 Q70 260 90 250" stroke="#B8E0D2" strokeWidth="2" fill="none" opacity="0.3" />
           </svg>
-          <p className="atelier-text font-playfair text-xl md:text-2xl italic mt-8 opacity-0" style={{ color: "#8A7060" }}>
+          <p className="atelier-text font-playfair text-xl md:text-2xl italic mt-8 opacity-0" style={{ color: "#1A1A1A" }}>
             Where every stitch begins...
           </p>
         </div>
 
-        {/* ═══ ACT 2: THE DRESS — 3D CONSTRUCTION ═══ */}
+        {/* ═══ ACT 2: THE GARMENT — 3D ETHNIC WEAR ═══ */}
         <div className="scene-dress absolute inset-0 z-20 flex flex-col items-center justify-center opacity-0" style={{ transformStyle: "preserve-3d" }}>
           <div className="dress-text text-center mb-6 opacity-0">
-            <span className="font-inter text-[10px] uppercase tracking-[0.5em]" style={{ color: "#D88C9A" }}>The Garment Takes Shape</span>
+            <span className="font-inter text-[10px] uppercase tracking-[0.5em]" style={{ color: "#D88C9A" }}>Crafting Ethnic Heirlooms</span>
           </div>
           <svg viewBox="0 0 320 440" className="w-[240px] md:w-[300px] h-auto drop-shadow-2xl" fill="none" xmlns="http://www.w3.org/2000/svg">
             <defs>
@@ -261,67 +291,51 @@ export default function Hero() {
             {/* Hanger hook highlight */}
             <circle cx="158" cy="26" r="2" fill="rgba(255,255,255,0.5)" />
 
-            {/* Dress pieces with 3D depth */}
+            {/* Ethnic Wear pieces with 3D depth */}
             <g filter="url(#dressGlow)">
-              {/* Bodice */}
+              {/* Kurta/Top */}
               <g className="dress-bodice" style={{ opacity: 0 }}>
-                <path d="M120 88 L108 145 L212 145 L200 88 Z" fill="url(#bodiceGrad)" />
-                {/* 3D highlight */}
-                <path d="M125 92 L115 140 L160 140 L155 92 Z" fill="rgba(255,255,255,0.15)" />
-                {/* Neckline */}
-                <path d="M130 88 Q160 110 190 88" stroke="#D88C9A" strokeWidth="1.5" fill="none" />
-                {/* Center seam */}
-                <line x1="160" y1="95" x2="160" y2="145" stroke="#E8AABB" strokeWidth="1" strokeDasharray="5,4" />
+                <path d="M120 88 L105 160 L215 160 L200 88 Z" fill="url(#bodiceGrad)" />
+                {/* Gold trimming at neck */}
+                <path d="M130 88 Q160 105 190 88" stroke="#F9E8A0" strokeWidth="3" fill="none" />
+                {/* Ethnic center pattern (Buta) */}
+                <circle cx="160" cy="120" r="4" fill="#F9E8A0" />
+                <circle cx="160" cy="132" r="3" fill="#F9E8A0" />
+                <circle cx="160" cy="144" r="2" fill="#F9E8A0" />
               </g>
 
-              {/* Skirt — gradient with pleats */}
+              {/* Flared Lehenga Skirt */}
               <g className="dress-skirt" style={{ opacity: 0 }}>
-                <path d="M108 145 L72 380 L248 380 L212 145 Z" fill="url(#skirtGrad)" />
-                {/* 3D highlight on skirt */}
-                <path d="M112 150 L82 375 L160 375 L155 150 Z" fill="rgba(255,255,255,0.1)" />
-                {/* Pleats */}
-                <line x1="130" y1="155" x2="100" y2="375" stroke="rgba(212,196,232,0.3)" strokeWidth="1" />
-                <line x1="160" y1="145" x2="160" y2="380" stroke="rgba(212,196,232,0.25)" strokeWidth="1" />
-                <line x1="190" y1="155" x2="220" y2="375" stroke="rgba(212,196,232,0.3)" strokeWidth="1" />
-                {/* Wavy hem */}
-                <path d="M72 375 Q98 388 124 375 Q150 388 176 375 Q202 388 228 375 Q248 385 248 380" stroke="#D4C4E8" strokeWidth="1.5" fill="none" />
+                <path d="M105 165 L50 380 L270 380 L215 165 Z" fill="url(#skirtGrad)" />
+                {/* Gold Border (Gota Patti) */}
+                <path d="M50 365 L270 365 L270 380 L50 380 Z" fill="#F9E8A0" opacity="0.8" />
+                {/* Vertical Panels (Kalis) */}
+                <line x1="125" y1="165" x2="90" y2="365" stroke="rgba(255,255,255,0.2)" strokeWidth="1" />
+                <line x1="160" y1="160" x2="160" y2="365" stroke="rgba(255,255,255,0.2)" strokeWidth="1" />
+                <line x1="195" y1="165" x2="230" y2="365" stroke="rgba(255,255,255,0.2)" strokeWidth="1" />
               </g>
 
-              {/* Left Sleeve — mint */}
+              {/* Dupatta Drape (Ethnic Detail) */}
+              <g className="dress-bow" style={{ opacity: 0 }}>
+                <path d="M120 88 Q80 120 70 280" stroke="#C3B9E0" strokeWidth="10" fill="none" opacity="0.6" strokeLinecap="round" />
+                <path d="M120 88 Q80 120 70 280" stroke="white" strokeWidth="1" fill="none" opacity="0.3" strokeDasharray="4,4" />
+              </g>
+
+              {/* Sleeves */}
               <g className="dress-sleeve-l" style={{ opacity: 0 }}>
-                <path d="M120 88 L82 120 L94 138 L108 108 Z" fill="url(#sleeveGrad)" />
-                <path d="M118 90 L88 118 L94 125 L108 105 Z" fill="rgba(255,255,255,0.15)" />
+                <path d="M120 88 L90 130 L105 140 L115 105 Z" fill="url(#sleeveGrad)" />
               </g>
-
-              {/* Right Sleeve — mint */}
               <g className="dress-sleeve-r" style={{ opacity: 0 }}>
-                <path d="M200 88 L238 120 L226 138 L212 108 Z" fill="url(#sleeveGrad)" />
+                <path d="M200 88 L230 130 L215 140 L205 105 Z" fill="url(#sleeveGrad)" />
               </g>
             </g>
 
-            {/* Stitch marks (animated) */}
-            <path className="stitch-mark" d="M105 155 L98 168" stroke="#D88C9A" strokeWidth="1.2" strokeDasharray="200" strokeDashoffset="200" />
-            <path className="stitch-mark" d="M215 155 L222 168" stroke="#D88C9A" strokeWidth="1.2" strokeDasharray="200" strokeDashoffset="200" />
-            <path className="stitch-mark" d="M92 220 L85 235" stroke="#B8E0D2" strokeWidth="1.2" strokeDasharray="200" strokeDashoffset="200" />
-            <path className="stitch-mark" d="M228 220 L235 235" stroke="#B8E0D2" strokeWidth="1.2" strokeDasharray="200" strokeDashoffset="200" />
-            <path className="stitch-mark" d="M82 300 L78 315" stroke="#D4C4E8" strokeWidth="1.2" strokeDasharray="200" strokeDashoffset="200" />
-            <path className="stitch-mark" d="M238 300 L242 315" stroke="#D4C4E8" strokeWidth="1.2" strokeDasharray="200" strokeDashoffset="200" />
-
-            {/* Sparkles — golden star shapes */}
+            {/* Ethnic Sparkles */}
             <g className="sparkle" style={{ opacity: 0 }}><polygon points="60,110 63,118 72,118 65,123 67,132 60,127 53,132 55,123 48,118 57,118" fill="#F9E8A0" /></g>
             <g className="sparkle" style={{ opacity: 0 }}><polygon points="260,95 262,101 269,101 264,105 265,112 260,108 255,112 256,105 251,101 258,101" fill="#F9E8A0" /></g>
-            <g className="sparkle" style={{ opacity: 0 }}><polygon points="50,270 52,276 59,276 54,280 55,287 50,283 45,287 46,280 41,276 48,276" fill="#F9D4B0" /></g>
-            <g className="sparkle" style={{ opacity: 0 }}><polygon points="270,290 272,296 279,296 274,300 275,307 270,303 265,307 266,300 261,296 268,296" fill="#D4C4E8" /></g>
-            <g className="sparkle" style={{ opacity: 0 }}><polygon points="160,20 161,23 165,23 162,25 163,29 160,27 157,29 158,25 155,23 159,23" fill="#B8E0D2" /></g>
-
-            {/* Bow — logo pink */}
-            <g className="dress-bow" style={{ opacity: 0 }}>
-              <path d="M148 138 Q154 128 160 138 Q166 128 172 138" stroke="#D88C9A" strokeWidth="2" fill="none" strokeLinecap="round" />
-              <circle cx="160" cy="138" r="3" fill="#F4B8C1" />
-            </g>
           </svg>
-          <p className="dress-text font-playfair text-xl md:text-2xl italic mt-4 opacity-0" style={{ color: "#8A7060" }}>
-            A tiny outfit comes to life ✨
+          <p className="dress-text font-playfair text-xl md:text-2xl italic mt-4 opacity-0" style={{ color: "#1A1A1A" }}>
+            A traditional heirloom comes to life ✨
           </p>
         </div>
 
@@ -382,32 +396,32 @@ export default function Hero() {
               {/* ── Inside: Rack ── */}
               <line x1="60" y1="85" x2="380" y2="85" stroke="#9B7F58" strokeWidth="4" strokeLinecap="round" />
 
-              {/* Garment 1 — Pink dress */}
+              {/* Garment 1 — Ethnic Frock */}
               <g className="closet-garment" style={{ opacity: 0 }}>
                 <line x1="110" y1="85" x2="110" y2="100" stroke="#BBB" strokeWidth="1.5" />
-                <path d="M92 100 L85 200 L135 200 L128 100 Z" fill="url(#bodiceGrad)" />
-                <path d="M92 100 Q110 88 128 100" stroke="#E8AABB" strokeWidth="1" fill="none" />
+                <path d="M90 100 L75 210 L145 210 L130 100 Z" fill="url(#bodiceGrad)" />
+                <path d="M75 195 L145 195" stroke="#F9E8A0" strokeWidth="3" />
               </g>
 
-              {/* Garment 2 — Mint romper */}
+              {/* Garment 2 — Ethnic Kurta */}
               <g className="closet-garment" style={{ opacity: 0 }}>
                 <line x1="180" y1="85" x2="180" y2="100" stroke="#BBB" strokeWidth="1.5" />
-                <path d="M162 100 L155 210 L205 210 L198 100 Z" fill="url(#sleeveGrad)" />
-                <path d="M162 100 Q180 88 198 100" stroke="#90C8B8" strokeWidth="1" fill="none" />
+                <path d="M165 100 L155 210 L205 210 L195 100 Z" fill="url(#sleeveGrad)" />
+                <path d="M180 100 L180 140" stroke="#F9E8A0" strokeWidth="1.5" />
               </g>
 
-              {/* Garment 3 — Lavender frock */}
+              {/* Garment 3 — Anarkali */}
               <g className="closet-garment" style={{ opacity: 0 }}>
                 <line x1="250" y1="85" x2="250" y2="100" stroke="#BBB" strokeWidth="1.5" />
-                <path d="M232 100 L222 205 L278 205 L268 100 Z" fill="#D4C4E8" />
-                <path d="M232 100 Q250 88 268 100" stroke="#B8A0D0" strokeWidth="1" fill="none" />
+                <path d="M225 100 L200 220 L300 220 L275 100 Z" fill="#D4C4E8" />
+                <circle cx="250" cy="120" r="3" fill="#F9E8A0" />
               </g>
 
-              {/* Garment 4 — Peach overall */}
+              {/* Garment 4 — Ethnic Vest/Sherwani */}
               <g className="closet-garment" style={{ opacity: 0 }}>
                 <line x1="330" y1="85" x2="330" y2="100" stroke="#BBB" strokeWidth="1.5" />
-                <path d="M312 100 L305 190 L355 190 L348 100 Z" fill="#F9D4B0" />
-                <path d="M312 100 Q330 88 348 100" stroke="#E8C4A0" strokeWidth="1" fill="none" />
+                <path d="M312 100 L305 200 L355 200 L348 100 Z" fill="#F9D4B0" />
+                <line x1="333" y1="100" x2="333" y2="200" stroke="#5C4033" strokeOpacity="0.2" />
               </g>
 
               {/* Shelf */}
@@ -455,7 +469,7 @@ export default function Hero() {
                 Welcome to Naani&apos;s Closet
               </span>
             </h2>
-            <p className="font-inter text-sm mt-3 max-w-sm mx-auto" style={{ color: "#8A8A8A" }}>
+            <p className="font-inter text-sm mt-3 max-w-sm mx-auto font-medium" style={{ color: "#444444" }}>
               A curated collection of handcrafted love, ready for tiny adventures.
             </p>
           </div>
